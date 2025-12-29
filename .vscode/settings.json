@@ -1,0 +1,6 @@
+{
+  "java.project.referencedLibraries": [
+    "${workspaceFolder}/lib/javafx/*.jar"
+  ],
+  "java.project.outputPath": "bin"
+}
