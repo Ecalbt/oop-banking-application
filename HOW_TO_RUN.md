@@ -1,4 +1,4 @@
-## 6. Cách chạy code
+## Cách chạy code
 
 - Tải javafx về sau đó tìm folder lib. (Ví dụ: “C:\javafx-sdk-25.0.1\lib”)
 - Tạo Folder lib/javafx
