@@ -279,6 +279,7 @@ public class AccountManagementPanel {
                 "Tạo tài khoản thành công!\nSố tài khoản: " + newAccount.getAccountNumber());
             clearForm();
             refresh();
+            app.refreshDashboard(); // Cập nhật tổng số dư trên header
         } else {
             showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể tạo tài khoản!");
         }
@@ -314,6 +315,7 @@ public class AccountManagementPanel {
                     showAlert(Alert.AlertType.INFORMATION, "Thành công", 
                         String.format("Nạp tiền thành công!\nSố tiền: %,.0f VNĐ", amount));
                     refresh();
+                    app.refreshDashboard(); // Cập nhật tổng số dư trên header
                 } else {
                     showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể nạp tiền!");
                 }
@@ -345,6 +347,7 @@ public class AccountManagementPanel {
             if (success) {
                 showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã đóng tài khoản!");
                 refresh();
+                app.refreshDashboard(); // Cập nhật tổng số dư trên header
             } else {
                 showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể đóng tài khoản!");
             }

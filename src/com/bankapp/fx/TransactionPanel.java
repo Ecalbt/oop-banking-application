@@ -323,6 +323,7 @@ public class TransactionPanel {
             clearForm();
             refreshAccountList();
             loadTransactionHistory();
+            app.refreshDashboard(); // Cập nhật tổng số dư trên header
         } else {
             showAlert(Alert.AlertType.ERROR, "Lỗi", resultMessage);
         }

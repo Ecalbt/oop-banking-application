@@ -101,6 +101,15 @@ public class BankAppFX extends Application {
     }
     
     /**
+     * Làm mới toàn bộ Dashboard (cập nhật tổng số dư, danh sách tài khoản, v.v.)
+     */
+    public void refreshDashboard() {
+        if (dashboardView != null) {
+            dashboardView.refresh();
+        }
+    }
+    
+    /**
      * Main method - Điểm vào chương trình.
      */
     public static void main(String[] args) {
