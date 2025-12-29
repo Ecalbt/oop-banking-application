@@ -3,6 +3,7 @@ package com.bankapp.controllers;
 import com.bankapp.model.Account;
 import com.bankapp.model.Transaction;
 import com.bankapp.model.User;
+import com.bankapp.services.AuthService;
 import com.bankapp.services.TransactionService;
 import com.bankapp.utils.ConsoleUtils;
 import com.bankapp.utils.InputValidator;
@@ -14,26 +15,34 @@ import java.util.List;
  */
 public class TransactionController {
     private final TransactionService transactionService;
+    private final AuthService authService;
 
     /**
         * Constructor - khởi tạo với TransactionService.
      *
      * @param transactionService TransactionService instance
+     * @param authService AuthService instance (để xác minh PIN)
      */
-    public TransactionController(TransactionService transactionService) {
+    public TransactionController(TransactionService transactionService, AuthService authService) {
         this.transactionService = transactionService;
+        this.authService = authService;
     }
 
     /**
         * Xử lý thao tác nạp tiền.
      *
      * @param account Account to deposit to
+     * @param user    Owner user (để xác minh PIN)
      * @return true if deposit successful, false otherwise
      */
-    public boolean handleDeposit(Account account) {
+    public boolean handleDeposit(Account account, User user) {
         ConsoleUtils.printHeader("DEPOSIT MONEY");
         ConsoleUtils.printInfo("Account: " + account.getAccountNumber() + 
                 " (" + account.getAccountType() + ")");
+
+        if (!verifyPin(user)) {
+            return false;
+        }
 
         // Get amount
         double amount = ConsoleUtils.readDouble("Enter deposit amount: $");
@@ -63,13 +72,18 @@ public class TransactionController {
         * Xử lý thao tác rút tiền.
      *
      * @param account Account to withdraw from
+     * @param user    Owner user (để xác minh PIN)
      * @return true if withdrawal successful, false otherwise
      */
-    public boolean handleWithdraw(Account account) {
+    public boolean handleWithdraw(Account account, User user) {
         ConsoleUtils.printHeader("WITHDRAW MONEY");
         ConsoleUtils.printInfo("Account: " + account.getAccountNumber() + 
                 " (" + account.getAccountType() + ")");
         ConsoleUtils.printInfo("Current Balance: " + ConsoleUtils.formatAmount(account.getBalance()));
+
+        if (!verifyPin(user)) {
+            return false;
+        }
 
         // Get amount
         double amount = ConsoleUtils.readDouble("Enter withdrawal amount: $");
@@ -113,6 +127,10 @@ public class TransactionController {
         ConsoleUtils.printInfo("From Account: " + fromAccount.getAccountNumber() + 
                 " (" + fromAccount.getAccountType() + ")");
         ConsoleUtils.printInfo("Current Balance: " + ConsoleUtils.formatAmount(fromAccount.getBalance()));
+
+        if (!verifyPin(user)) {
+            return false;
+        }
 
         // Get destination account number
         String toAccountNumber = ConsoleUtils.readString("Enter destination account number: ");
@@ -182,5 +200,32 @@ public class TransactionController {
     public void displayTransactionDetails(Transaction transaction) {
         ConsoleUtils.printSubHeader("TRANSACTION DETAILS");
         System.out.println(transaction.getFormattedDetails());
+    }
+
+    /**
+     * Yêu cầu và xác minh PIN trước khi thực hiện giao dịch.
+     */
+    private boolean verifyPin(User user) {
+        if (user == null) {
+            ConsoleUtils.printError("No user session found");
+            return false;
+        }
+
+        if (authService.isPinLocked(user)) {
+            ConsoleUtils.printError("PIN locked. Contact support to reset.");
+            return false;
+        }
+
+        String pin = ConsoleUtils.readString("Enter transaction PIN: ");
+        if (!InputValidator.isValidPin(pin)) {
+            ConsoleUtils.printError("Invalid PIN format (4-6 digits)");
+            return false;
+        }
+
+        boolean ok = authService.verifyPin(user, pin);
+        if (!ok) {
+            ConsoleUtils.printError("Incorrect PIN. Remaining attempts: " + authService.getRemainingPinAttempts(user));
+        }
+        return ok;
     }
 }

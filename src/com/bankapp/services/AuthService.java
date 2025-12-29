@@ -27,16 +27,20 @@ public class AuthService {
      *
      * @param username Tên đăng nhập của người dùng
      * @param password Mật khẩu của người dùng
+     * @param pin Mã PIN giao dịch của người dùng
      * @param fullName Họ tên đầy đủ
      * @param email Địa chỉ email
      * @return Đối tượng User nếu đăng ký thành công, null nếu thất bại
      */
-    public User register(String username, String password, String fullName, String email) {
+    public User register(String username, String password, String pin, String fullName, String email) {
         // Validate inputs
         if (!InputValidator.isValidUsername(username)) {
             return null;
         }
         if (!InputValidator.isValidPassword(password)) {
+            return null;
+        }
+        if (!InputValidator.isValidPin(pin)) {
             return null;
         }
         if (!InputValidator.isValidFullName(fullName)) {
@@ -54,13 +58,42 @@ public class AuthService {
         // Create new user with hashed password
         String userId = IDGenerator.generateUserId();
         String passwordHash = PasswordHasher.hashPassword(password);
-        User newUser = new User(userId, username, passwordHash, fullName, email);
+    String pinHash = PasswordHasher.hashPassword(pin);
+    User newUser = new User(userId, username, passwordHash, pinHash, fullName, email);
 
         // Save user
         if (userRepository.save(newUser)) {
             return newUser;
         }
         return null;
+    }
+
+    /**
+     * Xác thực mã PIN của người dùng cho các giao dịch.
+     *
+     * @param user Người dùng cần xác thực PIN
+     * @param pin  Mã PIN dạng plain text
+     * @return true nếu PIN đúng và chưa bị khóa, false nếu sai hoặc đã khóa
+     */
+    public boolean verifyPin(User user, String pin) {
+        if (user == null || !InputValidator.isValidPin(pin)) {
+            return false;
+        }
+        if (user.isPinLocked()) {
+            return false;
+        }
+
+        boolean ok = user.verifyPin(pin);
+        userRepository.update(user); // Lưu số lần nhập sai
+        return ok;
+    }
+
+    public boolean isPinLocked(User user) {
+        return user != null && user.isPinLocked();
+    }
+
+    public int getRemainingPinAttempts(User user) {
+        return user != null ? user.getRemainingPinAttempts() : 0;
     }
 
     /**

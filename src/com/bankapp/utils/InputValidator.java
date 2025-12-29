@@ -112,6 +112,20 @@ public class InputValidator {
     }
 
     /**
+     * Kiểm tra tính hợp lệ của mã PIN.
+     * Yêu cầu: 4-6 chữ số.
+     *
+     * @param pin Mã PIN cần kiểm tra
+     * @return true nếu hợp lệ, false nếu không
+     */
+    public static boolean isValidPin(String pin) {
+        if (pin == null || pin.isEmpty()) {
+            return false;
+        }
+        return pin.matches("^[0-9]{4,6}$");
+    }
+
+    /**
      * Kiểm tra một chuỗi có null hoặc rỗng hay không.
      *
      * @param str Chuỗi cần kiểm tra

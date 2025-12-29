@@ -43,6 +43,13 @@ public class AuthController {
             return null;
         }
 
+        // Get PIN
+        String pin = ConsoleUtils.readString("Enter 4-6 digit transaction PIN: ");
+        if (!InputValidator.isValidPin(pin)) {
+            ConsoleUtils.printError("Invalid PIN format (4-6 digits)");
+            return null;
+        }
+
         // Get full name
         String fullName = ConsoleUtils.readString("Enter full name: ");
         if (!InputValidator.isValidFullName(fullName)) {
@@ -58,7 +65,7 @@ public class AuthController {
         }
 
         // Attempt registration
-        User newUser = authService.register(username, password, fullName, email);
+        User newUser = authService.register(username, password, pin, fullName, email);
         if (newUser != null) {
             ConsoleUtils.printSuccess("Registration successful!");
             ConsoleUtils.printInfo("Your User ID: " + newUser.getUserId());

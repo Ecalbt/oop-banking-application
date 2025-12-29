@@ -30,7 +30,10 @@ public class BankApplication {
                 bankService.getAccountService(),
                 bankService.getTransactionService()
         );
-        this.transactionController = new TransactionController(bankService.getTransactionService());
+        this.transactionController = new TransactionController(
+            bankService.getTransactionService(),
+            bankService.getAuthService()
+        );
         this.currentUser = null;
     }
 
@@ -174,11 +177,11 @@ public class BankApplication {
 
             switch (choice) {
                 case 0: // Deposit
-                    transactionController.handleDeposit(account);
+                    transactionController.handleDeposit(account, currentUser);
                     ConsoleUtils.pause();
                     break;
                 case 1: // Withdraw
-                    transactionController.handleWithdraw(account);
+                    transactionController.handleWithdraw(account, currentUser);
                     ConsoleUtils.pause();
                     break;
                 case 2: // Transfer

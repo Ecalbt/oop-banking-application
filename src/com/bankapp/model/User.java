@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.bankapp.utils.PasswordHasher;
+
 /**
  * Lớp User đại diện cho một khách hàng ngân hàng.
  * Bao đóng thông tin người dùng và quản lý các tài khoản liên kết.
@@ -13,10 +15,14 @@ public class User implements Serializable {
     private String userId;
     private String username;
     private String passwordHash;
+    private String pinHash;
+    private int pinFailedAttempts;
     private String fullName;
     private String email;
     private List<Account> accounts;
     private long createdAt;
+
+    private static final int MAX_PIN_ATTEMPTS = 5;
 
     /**
      * Constructor tạo một User mới.
@@ -24,13 +30,16 @@ public class User implements Serializable {
      * @param userId       Mã định danh duy nhất cho người dùng
      * @param username     Tên đăng nhập
      * @param passwordHash Mật khẩu đã được băm để bảo mật
+     * @param pinHash      Mã PIN đã băm
      * @param fullName     Họ tên đầy đủ của người dùng
      * @param email        Địa chỉ email của người dùng
      */
-    public User(String userId, String username, String passwordHash, String fullName, String email) {
+    public User(String userId, String username, String passwordHash, String pinHash, String fullName, String email) {
         this.userId = userId;
         this.username = username;
         this.passwordHash = passwordHash;
+        this.pinHash = pinHash;
+        this.pinFailedAttempts = 0;
         this.fullName = fullName;
         this.email = email;
         this.accounts = new ArrayList<>();
@@ -49,6 +58,32 @@ public class User implements Serializable {
 
     public String getPasswordHash() {
         return passwordHash;
+    }
+
+    public boolean isPinLocked() {
+        return pinFailedAttempts >= MAX_PIN_ATTEMPTS;
+    }
+
+    public int getRemainingPinAttempts() {
+        return Math.max(0, MAX_PIN_ATTEMPTS - pinFailedAttempts);
+    }
+
+    public void setPinHash(String pinHash) {
+        this.pinHash = pinHash;
+        this.pinFailedAttempts = 0;
+    }
+
+    public boolean verifyPin(String pin) {
+        if (pinHash == null || isPinLocked()) {
+            return false;
+        }
+        boolean matched = PasswordHasher.verifyPassword(pin, pinHash);
+        if (matched) {
+            pinFailedAttempts = 0;
+        } else {
+            pinFailedAttempts++;
+        }
+        return matched;
     }
 
     public String getFullName() {

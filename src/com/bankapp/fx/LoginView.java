@@ -1,6 +1,7 @@
 package com.bankapp.fx;
 
 import com.bankapp.model.User;
+import com.bankapp.utils.InputValidator;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -26,6 +27,8 @@ public class LoginView {
     private TextField txtRegUsername;
     private PasswordField txtRegPassword;
     private PasswordField txtRegConfirmPassword;
+    private PasswordField txtRegPin;
+    private PasswordField txtRegConfirmPin;
     private TextField txtRegFullName;
     private TextField txtRegEmail;
     
@@ -138,6 +141,18 @@ public class LoginView {
         txtRegConfirmPassword = new PasswordField();
         txtRegConfirmPassword.setPromptText("Nhập lại mật khẩu");
         txtRegConfirmPassword.setMaxWidth(250);
+
+        // PIN
+        Label lblPin = new Label("Mã PIN giao dịch:");
+        txtRegPin = new PasswordField();
+        txtRegPin.setPromptText("4-6 chữ số");
+        txtRegPin.setMaxWidth(250);
+
+        // Confirm PIN
+        Label lblConfirmPin = new Label("Xác nhận PIN:");
+        txtRegConfirmPin = new PasswordField();
+        txtRegConfirmPin.setPromptText("Nhập lại PIN");
+        txtRegConfirmPin.setMaxWidth(250);
         
         // Full Name
         Label lblFullName = new Label("Họ và tên:");
@@ -160,6 +175,8 @@ public class LoginView {
             lblUsername, txtRegUsername,
             lblPassword, txtRegPassword,
             lblConfirmPassword, txtRegConfirmPassword,
+            lblPin, txtRegPin,
+            lblConfirmPin, txtRegConfirmPin,
             lblFullName, txtRegFullName,
             lblEmail, txtRegEmail,
             new Region() {{ setMinHeight(5); }},
@@ -213,6 +230,8 @@ public class LoginView {
         String username = txtRegUsername.getText().trim();
         String password = txtRegPassword.getText();
         String confirmPassword = txtRegConfirmPassword.getText();
+        String pin = txtRegPin.getText();
+        String confirmPin = txtRegConfirmPin.getText();
         String fullName = txtRegFullName.getText().trim();
         String email = txtRegEmail.getText().trim();
         
@@ -246,6 +265,24 @@ public class LoginView {
             txtRegConfirmPassword.requestFocus();
             return;
         }
+
+        if (pin.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Vui lòng nhập mã PIN!");
+            txtRegPin.requestFocus();
+            return;
+        }
+
+        if (!InputValidator.isValidPin(pin)) {
+            showAlert(Alert.AlertType.WARNING, "Cảnh báo", "PIN phải là 4-6 chữ số!");
+            txtRegPin.requestFocus();
+            return;
+        }
+
+        if (!pin.equals(confirmPin)) {
+            showAlert(Alert.AlertType.WARNING, "Cảnh báo", "PIN xác nhận không khớp!");
+            txtRegConfirmPin.requestFocus();
+            return;
+        }
         
         if (fullName.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Vui lòng nhập họ và tên!");
@@ -260,7 +297,7 @@ public class LoginView {
         }
         
         // Thực hiện đăng ký
-        User newUser = app.getAuthService().register(username, password, fullName, email);
+        User newUser = app.getAuthService().register(username, password, pin, fullName, email);
         
         if (newUser != null) {
             showAlert(Alert.AlertType.INFORMATION, "Thành công", 
@@ -290,6 +327,8 @@ public class LoginView {
         txtRegUsername.clear();
         txtRegPassword.clear();
         txtRegConfirmPassword.clear();
+        txtRegPin.clear();
+        txtRegConfirmPin.clear();
         txtRegFullName.clear();
         txtRegEmail.clear();
     }
