@@ -3,6 +3,7 @@ package com.bankapp.fx;
 import com.bankapp.model.Account;
 import com.bankapp.model.Transaction;
 import com.bankapp.model.User;
+import com.bankapp.utils.InputValidator;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -283,6 +284,33 @@ public class TransactionPanel {
         if (description.isEmpty()) {
             description = "Giao dịch qua giao diện";
         }
+
+        User user = app.getCurrentUser();
+        if (user == null) {
+            showAlert(Alert.AlertType.ERROR, "Lỗi", "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
+            return;
+        }
+
+        if (app.getAuthService().isPinLocked(user)) {
+            showAlert(Alert.AlertType.ERROR, "PIN bị khóa", "Bạn đã nhập sai quá số lần cho phép. Vui lòng liên hệ hỗ trợ để đặt lại PIN.");
+            return;
+        }
+
+        String pin = promptForPin();
+        if (pin == null) {
+            return; // người dùng hủy
+        }
+
+        if (!InputValidator.isValidPin(pin)) {
+            showAlert(Alert.AlertType.WARNING, "Cảnh báo", "PIN phải là 4-6 chữ số!");
+            return;
+        }
+
+        if (!app.getAuthService().verifyPin(user, pin)) {
+            int remain = app.getAuthService().getRemainingPinAttempts(user);
+            showAlert(Alert.AlertType.ERROR, "PIN không đúng", "PIN sai. Số lần thử còn lại: " + remain);
+            return;
+        }
         
         String transactionType = cmbTransactionType.getValue();
         boolean success = false;
@@ -426,6 +454,33 @@ public class TransactionPanel {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    /**
+     * Hiển thị dialog nhập PIN cho giao dịch.
+     */
+    private String promptForPin() {
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("Xác minh PIN");
+        dialog.setHeaderText("Nhập mã PIN để thực hiện giao dịch");
+
+        ButtonType okButtonType = new ButtonType("Xác nhận", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(okButtonType, ButtonType.CANCEL);
+
+        PasswordField pinField = new PasswordField();
+        pinField.setPromptText("PIN 4-6 chữ số");
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+        grid.add(new Label("PIN:"), 0, 0);
+        grid.add(pinField, 1, 0);
+
+        dialog.getDialogPane().setContent(grid);
+
+        dialog.setResultConverter(dialogButton -> dialogButton == okButtonType ? pinField.getText() : null);
+        return dialog.showAndWait().orElse(null);
     }
     
     /**
